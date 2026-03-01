@@ -1,153 +1,267 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FOREX - Gold</title>
+<title>FOREX - Gold Investment</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
-    margin:0;
-    font-family:Arial;
-    background:#111;
-    color:white;
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(135deg,#0f0f1a,#141e30,#0f0f1a);
+color:white;
 }
-.container{
-    padding:20px;
+.container{padding:20px;}
+.topbar{
+display:flex;
+justify-content:space-between;
+margin-bottom:20px;
 }
+.brand{font-weight:bold;font-size:20px;}
+.balance-box{font-size:13px;text-align:right;}
+.balance-box span{color:#00ffcc;font-weight:bold;}
 .card{
-    background:#1c1c1c;
-    padding:20px;
-    border-radius:15px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(15px);
+border-radius:25px;
+padding:20px;
+box-shadow:0 0 30px rgba(0,255,200,0.15);
 }
-.price{
-    font-size:35px;
-    margin:10px 0;
-}
+.symbol{color:#aaa;font-size:14px;}
+.price{font-size:34px;font-weight:bold;}
 .green{color:#00ff99;}
 .red{color:#ff4d4d;}
-button{
-    width:100%;
-    padding:12px;
-    margin-top:10px;
-    border:none;
-    border-radius:10px;
-    font-weight:bold;
+.btn{
+width:100%;padding:14px;border:none;
+border-radius:14px;font-weight:bold;
+margin-top:10px;cursor:pointer;
 }
-.deposit{background:gold;}
-.buy{background:#00ff99;}
+.buy{background:linear-gradient(90deg,#00ff99,#00c853);color:black;}
+.sell{background:linear-gradient(90deg,#ff5252,#ff1744);color:white;}
+.deposit{background:linear-gradient(90deg,#ffd700,#ffb300);color:black;}
+.withdraw{background:linear-gradient(90deg,#2196f3,#00b0ff);color:white;}
 .modal{
-    display:none;
-    position:fixed;
-    top:0;left:0;
-    width:100%;height:100%;
-    background:rgba(0,0,0,0.8);
-    justify-content:center;
-    align-items:center;
+display:none;position:fixed;
+top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,0.85);
+justify-content:center;align-items:center;
 }
 .modal-content{
-    background:white;
-    color:black;
-    padding:20px;
-    border-radius:15px;
-    width:80%;
-    text-align:center;
+background:#111;padding:25px;
+border-radius:20px;width:85%;
+text-align:center;
 }
-input{
-    width:100%;
-    padding:10px;
-    margin:10px 0;
+.modal-content input,select{
+width:100%;padding:12px;margin:10px 0;
+border-radius:10px;border:none;
 }
-img{
-    width:200px;
+.qris{width:200px;margin:10px 0;}
+.history{
+margin-top:20px;
+font-size:12px;
+max-height:120px;
+overflow:auto;
+}
+.history div{
+border-bottom:1px solid rgba(255,255,255,0.1);
+padding:5px 0;
 }
 </style>
 </head>
 <body>
 
 <div class="container">
-<h2>FOREX - Investasi Emas</h2>
-<div>Saldo: <span id="saldo">Rp 0</span></div>
+
+<div class="topbar">
+<div class="brand">FOREX</div>
+<div class="balance-box">
+Saldo: <span id="saldo">Rp 0</span><br>
+Emas: <span id="gold">0</span> gr<br>
+<span id="profitCountdown"></span>
+</div>
+</div>
 
 <div class="card">
-<div>Gold / Dollar (XAUUSD)</div>
+<div class="symbol">Gold / Dollar (XAUUSD)</div>
 <div class="price" id="price">2035.50 USD</div>
-<div id="change" class="green">+0.50 (0.02%)</div>
+<div id="change" class="green">+0.00</div>
 
-<button class="buy">Beli Emas</button>
-<button class="deposit" onclick="openDeposit()">Deposit</button>
+<canvas id="chart" height="120"></canvas>
+
+<button class="btn buy" onclick="buyGold()">BUY</button>
+<button class="btn sell" onclick="sellGold()">SELL</button>
+<button class="btn deposit" onclick="openDeposit()">DEPOSIT</button>
+<button class="btn withdraw" onclick="openWithdraw()">WITHDRAW</button>
+
+<div class="history" id="history"></div>
+
 </div>
 </div>
 
+<!-- Deposit -->
 <div class="modal" id="depositModal">
 <div class="modal-content">
 <h3>Deposit Saldo</h3>
-<input type="number" id="amount" placeholder="Masukkan jumlah">
-<p>Minimal 50.000 - Maksimal 7M</p>
-<img src="https://files.catbox.moe/fv3684.jpg">
-<button onclick="confirmDeposit()">Saya Sudah Bayar</button>
-<button onclick="closeDeposit()">Batal</button>
+<input type="number" id="depositAmount" placeholder="Masukkan jumlah">
+<p>Min 50.000</p>
+<img src="https://files.catbox.moe/fv3684.jpg" class="qris">
+<button class="btn deposit" onclick="confirmDeposit()">Saya Sudah Bayar</button>
+<button class="btn sell" onclick="closeModal()">Batal</button>
+</div>
+</div>
+
+<!-- Withdraw -->
+<div class="modal" id="withdrawModal">
+<div class="modal-content">
+<h3>Penarikan Dana</h3>
+<select id="withdrawMethod">
+<option>Transfer Bank</option>
+<option>DANA</option>
+<option>OVO</option>
+<option>GoPay</option>
+<option>QRIS</option>
+<option>USDT</option>
+</select>
+<input type="text" id="accountName" placeholder="Nama Pemilik">
+<input type="text" id="accountNumber" placeholder="Nomor Rekening / HP / Wallet">
+<input type="number" id="withdrawAmount" placeholder="Jumlah Penarikan">
+<button class="btn withdraw" onclick="confirmWithdraw()">Ajukan Penarikan</button>
+<button class="btn sell" onclick="closeModal()">Batal</button>
 </div>
 </div>
 
 <script>
-let saldo = 0;
+let saldo=localStorage.getItem("saldo")?parseFloat(localStorage.getItem("saldo")):0;
+let gold=localStorage.getItem("gold")?parseFloat(localStorage.getItem("gold")):0;
+let lastProfit=localStorage.getItem("lastProfit")?parseInt(localStorage.getItem("lastProfit")):Date.now();
+let historyData=localStorage.getItem("history")?JSON.parse(localStorage.getItem("history")):[];
+let weeklyPercent=5;
+let price=2035.50;
 
-function formatRupiah(x){
-    return "Rp " + x.toLocaleString("id-ID");
+function rupiah(x){return "Rp "+Math.floor(x).toLocaleString("id-ID");}
+
+function save(){
+localStorage.setItem("saldo",saldo);
+localStorage.setItem("gold",gold);
+localStorage.setItem("lastProfit",lastProfit);
+localStorage.setItem("history",JSON.stringify(historyData));
 }
 
-function updateSaldo(){
-    document.getElementById("saldo").innerText = formatRupiah(saldo);
+function addHistory(text){
+historyData.unshift(text);
+if(historyData.length>20) historyData.pop();
+save();
+renderHistory();
 }
 
-function openDeposit(){
-    document.getElementById("depositModal").style.display="flex";
+function renderHistory(){
+let h=document.getElementById("history");
+h.innerHTML="";
+historyData.forEach(i=>h.innerHTML+="<div>"+i+"</div>");
 }
 
-function closeDeposit(){
-    document.getElementById("depositModal").style.display="none";
+function updateUI(){
+saldoEl.innerText=rupiah(saldo);
+goldEl.innerText=gold.toFixed(2);
+}
+
+function checkProfit(){
+let now=Date.now();
+let oneWeek=7*24*60*60*1000;
+if(now-lastProfit>=oneWeek){
+let profit=saldo*(weeklyPercent/100);
+saldo+=profit;
+lastProfit=now;
+addHistory("Profit mingguan +"+rupiah(profit));
+}
+let remaining=oneWeek-(Date.now()-lastProfit);
+let days=Math.floor(remaining/(1000*60*60*24));
+profitCountdown.innerText="Profit berikutnya "+days+" hari lagi";
+}
+
+function buyGold(){
+let cost=price*16000;
+if(saldo<cost){alert("Saldo kurang!");return;}
+saldo-=cost;gold+=1;
+addHistory("Beli 1gr Emas");
+updateUI();save();
+}
+
+function sellGold(){
+if(gold<1){alert("Emas kurang!");return;}
+let value=price*16000;
+gold-=1;saldo+=value;
+addHistory("Jual 1gr Emas");
+updateUI();save();
 }
 
 function confirmDeposit(){
-    let jumlah = parseInt(document.getElementById("amount").value);
-
-    if(jumlah < 50000){
-        alert("Minimal 50.000");
-        return;
-    }
-    if(jumlah > 7000000000){
-        alert("Maksimal 7M");
-        return;
-    }
-
-    saldo += jumlah;
-    updateSaldo();
-    closeDeposit();
-    alert("Deposit berhasil!");
+let amt=parseInt(depositAmount.value);
+if(amt<50000){alert("Minimal 50.000");return;}
+if(amt>7000000000){alert("Maksimal 7M");return;}
+saldo+=amt;
+addHistory("Deposit "+rupiah(amt));
+updateUI();save();closeModal();
 }
 
-updateSaldo();
+function confirmWithdraw(){
+let amt=parseInt(withdrawAmount.value);
+let method=withdrawMethod.value;
+if(amt>saldo){alert("Saldo tidak cukup");return;}
+if(amt<50000){alert("Minimal withdraw 50.000");return;}
+saldo-=amt;
+addHistory("Withdraw "+rupiah(amt)+" via "+method);
+updateUI();save();closeModal();
+}
 
-/* Simulasi harga */
+function openDeposit(){depositModal.style.display="flex";}
+function openWithdraw(){withdrawModal.style.display="flex";}
+function closeModal(){
+depositModal.style.display="none";
+withdrawModal.style.display="none";
+}
+
+const saldoEl=document.getElementById("saldo");
+const goldEl=document.getElementById("gold");
+const profitCountdown=document.getElementById("profitCountdown");
+
+updateUI();
+renderHistory();
+checkProfit();
+setInterval(checkProfit,60000);
+
+/* Chart */
+const ctx=document.getElementById("chart").getContext("2d");
+let data=Array.from({length:30},()=>price);
+const chart=new Chart(ctx,{
+type:"line",
+data:{labels:data.map((_,i)=>i),
+datasets:[{
+data:data,
+borderColor:"#00ffcc",
+backgroundColor:"rgba(0,255,200,0.1)",
+fill:true,tension:0.4
+}]},
+options:{plugins:{legend:{display:false}},
+scales:{x:{display:false},y:{display:false}}}
+});
+
 setInterval(()=>{
-    let priceEl = document.getElementById("price");
-    let changeEl = document.getElementById("change");
+let change=(Math.random()-0.5)*6;
+price+=change;
+data.push(price);
+data.shift();
+chart.data.datasets[0].data=data;
+chart.update();
+priceEl.innerText=price.toFixed(2)+" USD";
+changeEl.innerText=change.toFixed(2);
+changeEl.className=change>=0?"green":"red";
+},2000);
 
-    let current = parseFloat(priceEl.innerText);
-    let change = (Math.random()-0.5)*5;
-    let newPrice = current + change;
-
-    priceEl.innerText = newPrice.toFixed(2)+" USD";
-
-    if(change>=0){
-        changeEl.className="green";
-        changeEl.innerText="+"+change.toFixed(2);
-    }else{
-        changeEl.className="red";
-        changeEl.innerText=change.toFixed(2);
-    }
-},3000);
+const priceEl=document.getElementById("price");
+const changeEl=document.getElementById("change");
 </script>
 
 </body>
