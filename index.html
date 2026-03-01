@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOREX - Gold</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#111;
+    color:white;
+}
+.container{
+    padding:20px;
+}
+.card{
+    background:#1c1c1c;
+    padding:20px;
+    border-radius:15px;
+}
+.price{
+    font-size:35px;
+    margin:10px 0;
+}
+.green{color:#00ff99;}
+.red{color:#ff4d4d;}
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+}
+.deposit{background:gold;}
+.buy{background:#00ff99;}
+.modal{
+    display:none;
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.8);
+    justify-content:center;
+    align-items:center;
+}
+.modal-content{
+    background:white;
+    color:black;
+    padding:20px;
+    border-radius:15px;
+    width:80%;
+    text-align:center;
+}
+input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+}
+img{
+    width:200px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2>FOREX - Investasi Emas</h2>
+<div>Saldo: <span id="saldo">Rp 0</span></div>
+
+<div class="card">
+<div>Gold / Dollar (XAUUSD)</div>
+<div class="price" id="price">2035.50 USD</div>
+<div id="change" class="green">+0.50 (0.02%)</div>
+
+<button class="buy">Beli Emas</button>
+<button class="deposit" onclick="openDeposit()">Deposit</button>
+</div>
+</div>
+
+<div class="modal" id="depositModal">
+<div class="modal-content">
+<h3>Deposit Saldo</h3>
+<input type="number" id="amount" placeholder="Masukkan jumlah">
+<p>Minimal 50.000 - Maksimal 7M</p>
+<img src="https://files.catbox.moe/fv3684.jpg">
+<button onclick="confirmDeposit()">Saya Sudah Bayar</button>
+<button onclick="closeDeposit()">Batal</button>
+</div>
+</div>
+
+<script>
+let saldo = 0;
+
+function formatRupiah(x){
+    return "Rp " + x.toLocaleString("id-ID");
+}
+
+function updateSaldo(){
+    document.getElementById("saldo").innerText = formatRupiah(saldo);
+}
+
+function openDeposit(){
+    document.getElementById("depositModal").style.display="flex";
+}
+
+function closeDeposit(){
+    document.getElementById("depositModal").style.display="none";
+}
+
+function confirmDeposit(){
+    let jumlah = parseInt(document.getElementById("amount").value);
+
+    if(jumlah < 50000){
+        alert("Minimal 50.000");
+        return;
+    }
+    if(jumlah > 7000000000){
+        alert("Maksimal 7M");
+        return;
+    }
+
+    saldo += jumlah;
+    updateSaldo();
+    closeDeposit();
+    alert("Deposit berhasil!");
+}
+
+updateSaldo();
+
+/* Simulasi harga */
+setInterval(()=>{
+    let priceEl = document.getElementById("price");
+    let changeEl = document.getElementById("change");
+
+    let current = parseFloat(priceEl.innerText);
+    let change = (Math.random()-0.5)*5;
+    let newPrice = current + change;
+
+    priceEl.innerText = newPrice.toFixed(2)+" USD";
+
+    if(change>=0){
+        changeEl.className="green";
+        changeEl.innerText="+"+change.toFixed(2);
+    }else{
+        changeEl.className="red";
+        changeEl.innerText=change.toFixed(2);
+    }
+},3000);
+</script>
+
+</body>
+</html>
